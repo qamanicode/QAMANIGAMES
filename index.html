@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pong Game</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: black;
+            margin: 0;
+        }
+        canvas {
+            border: 1px solid white;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="pong" width="800" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('pong');
+        const context = canvas.getContext('2d');
+
+        // Create the pong paddle
+        const paddleWidth = 10;
+        const paddleHeight = 100;
+        const playerPaddle = {
+            x: 0,
+            y: canvas.height / 2 - paddleHeight / 2,
+            width: paddleWidth,
+            height: paddleHeight,
+            color: 'white'
+        };
+        const computerPaddle = {
+            x: canvas.width - paddleWidth,
+            y: canvas.height / 2 - paddleHeight / 2,
+            width: paddleWidth,
+            height: paddleHeight,
+            color: 'white'
+        };
+
+        // Create the pong ball
+        const ball = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            size: 10,
+            speed: 4,
+            velocityX: 4,
+            velocityY: 4,
+            color: 'white'
+        };
+
+        // Draw the paddle and ball
+        function drawRect(x, y, width, height, color) {
+            context.fillStyle = color;
+            context.fillRect(x, y, width, height);
+        }
+
+        function drawCircle(x, y, size, color) {
+            context.fillStyle = color;
+            context.beginPath();
+            context.arc(x, y, size, 0, Math.PI * 2, false);
+            context.closePath();
+            context.fill();
+        }
+
+        // Update game
+        function update() {
+            // Move the computer paddle
+            computerPaddle.y += (ball.y - (computerPaddle.y + computerPaddle.height / 2)) * 0.1;
+
+            // Move the ball
+            ball.x += ball.velocityX;
+            ball.y += ball.velocityY;
+
+            // Ball collision with top and bottom
+            if (ball.y + ball.size > canvas.height || ball.y - ball.size < 0) {
+                ball.velocityY = -ball.velocityY;
+            }
+
+            // Ball collision with paddles
+            const playerCollision = ball.x - ball.size < playerPaddle.x + playerPaddle.width &&
+                                   ball.y > playerPaddle.y &&
+                                   ball.y < playerPaddle.y + playerPaddle.height;
+            const computerCollision = ball.x + ball.size > computerPaddle.x &&
+                                     ball.y > computerPaddle.y &&
+                                     ball.y < computerPaddle.y + computerPaddle.height;
+
+            if (playerCollision || computerCollision) {
+                ball.velocityX = -ball.velocityX;
+            }
+
+            // Reset ball if it goes out of bounds
+            if (ball.x + ball.size < 0 || ball.x - ball.size > canvas.width) {
+                ball.x = canvas.width / 2;
+                ball.y = canvas.height / 2;
+                ball.velocityX = -ball.velocityX;
+            }
+        }
+
+        // Render game
+        function render() {
+            // Clear the canvas
+            drawRect(0, 0, canvas.width, canvas.height, 'black');
+            // Draw paddles and ball
+            drawRect(playerPaddle.x, playerPaddle.y, playerPaddle.width, playerPaddle.height, playerPaddle.color);
+            drawRect(computerPaddle.x, computerPaddle.y, computerPaddle.width, computerPaddle.height, computerPaddle.color);
+            drawCircle(ball.x, ball.y, ball.size, ball.color);
+        }
+
+        // Game loop
+        function game() {
+            update();
+            render();
+            requestAnimationFrame(game);
+        }
+
+        // Control player paddle
+        document.addEventListener('mousemove', event => {
+            const rect = canvas.getBoundingClientRect();
+            const root = document.documentElement;
+            const mouseY = event.clientY - rect.top - root.scrollTop;
+            playerPaddle.y = mouseY - playerPaddle.height / 2;
+        });
+
+        game();
+    </script>
+</body>
+</html>
